@@ -8,6 +8,10 @@ node_modules/
 dist/
 web-build/
 expo-env.d.ts
+.claude/
+AGENTS.md
+CLAUDE.md
+.vscode/
 
 # Native
 .kotlin/
