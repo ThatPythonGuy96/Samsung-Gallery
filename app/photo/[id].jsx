@@ -1,32 +1,45 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, Text, View, Image, FlatList, Pressable, Alert } from 'react-native';
+import { StyleSheet, Text, View, Image, FlatList, Pressable, Alert, useWindowDimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { photos as allPhotos, albums } from '../../data';
 import PhotoActionBar from '../../components/PhotoActionBar';
 import PhotoTopAction from '../../components/PhotoTopAction';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
-import { Gesture, GestureDetector, useTapGesture, } from 'react-native-gesture-handler'
+import Animated, { useAnimatedStyle, useSharedValue, withTiming, withSpring } from 'react-native-reanimated'
+import { Gesture, GestureDetector, } from 'react-native-gesture-handler'
 import { runOnJS } from 'react-native-worklets';
 
 const THUMB = 64;
 const GAP = 8;
+const SWIPE_DISTANCE = 80;
+const SWIPE_VELOCITY = 800;
 
 const ImageScreen = () => {
     const { id, album: albumName } = useLocalSearchParams();
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const { width } = useWindowDimensions();
     const listRef = useRef(null);
     const [favorites, setFavorites] = useState({});
 
-    const scale = useSharedValue(1);
+    const photos = useMemo(() => {
+        const album = albums.find((a) => a.name === albumName);
+        return album ? album.photos : allPhotos;
+    }, [albumName]);
 
+    const scale = useSharedValue(1);
+    const translateX = useSharedValue(0);
+    
     const animatedStyle = useAnimatedStyle(() => ({
-        transform: [{ scale: scale.value }]
+        transform: [{ translateX: translateX.value }, { scale: scale.value }],
     }));
 
-    const gesture = Gesture.Pinch()
-        .onChange((e) => { scale.value = e.scale; console.log(scale.value)})
+    const goTo = (nextIndex) => {
+        router.setParams({ id: String(photos[nextIndex].id) });
+    };
+
+    const pinch = Gesture.Pinch()
+        .onChange((e) => { scale.value = e.scale;})
         .onEnd((e) => {
             if (e.velocity < 0) {
                 runOnJS(router.back)();
@@ -35,18 +48,44 @@ const ImageScreen = () => {
             }
         });
 
-    const photos = useMemo(() => {
-        const album = albums.find((a) => a.name === albumName);
-        return album ? album.photos : allPhotos;
-    }, [albumName]);
+    const pan = Gesture.Pan()
+        .maxPointers(1)               // two fingers = pinch, not swipe
+        .activeOffsetX([-15, 15])     // only activate on horizontal movement
+        .failOffsetY([-20, 20])
+        .onUpdate((e) => {
+            const atEdge = (e.translationX > 0 && !hasPrev) || (e.translationX < 0 && !hasNext);
+            translateX.value = atEdge ? e.translationX / 4 : e.translationX; // resistance at the ends
+        })
+        .onEnd((e) => {
+            const swipedLeft =
+                hasNext && (e.translationX < -SWIPE_DISTANCE || e.velocityX < -SWIPE_VELOCITY);
+            const swipedRight =
+                hasPrev && (e.translationX > SWIPE_DISTANCE || e.velocityX > SWIPE_VELOCITY);
+
+            if (swipedLeft || swipedRight) {
+                const dir = swipedLeft ? 1 : -1; // swipe left = next photo
+                translateX.value = withTiming(-dir * width, { duration: 150 }, (finished) => {
+                    if (finished) runOnJS(goTo)(index + dir);
+                });
+            } else {
+                translateX.value = withSpring(0);
+            }
+        });
+
+    const gesture = Gesture.Simultaneous(pinch, pan);
+
+    
 
     const index = photos.findIndex((p) => p.id === Number.parseInt(id, 10));
     const photo = photos[index];
+    const hasPrev = index > 0;
+    const hasNext = index >= 0 && index < photos.length - 1;
 
     useEffect(() => {
         if (index >= 0) {
             listRef.current?.scrollToIndex({ index, viewPosition: 0.5, animated: true });
         }
+        translateX.value = 0;
     }, [index]);
 
     if (!photo) {

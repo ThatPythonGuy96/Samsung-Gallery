@@ -26,7 +26,7 @@ Install dependencies, then start the Expo development server:
 
 ```bash
 npm install
-npm run start
+npx expo start
 ```
 
 Use the Expo CLI prompts to open the app in a development build or emulator. You can also start a platform-specific target with `npm run android`, `npm run ios`, or `npm run web`.
