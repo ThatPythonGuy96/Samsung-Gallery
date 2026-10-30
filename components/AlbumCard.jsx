@@ -3,11 +3,11 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native'
 
 const AlbumCard = ({ item }) => {
     return (
-        <Link href={`../album/${item.name}`} asChild>
+        <Link href={`../album/${item.id}`} asChild>
             <Pressable style={styles.card}>
-                <Image style={styles.image} source={item.photos[0].image} />
-                <Text style={styles.albumName}>{item.name}</Text>
-                <Text style={styles.itemCount}>{item.photos.length}</Text>
+                <Image style={styles.image} source={{ uri: item.cover }} />
+                <Text style={styles.albumName} numberOfLines={1} ellipsizeMode="tail">{item.title}</Text>
+                <Text style={styles.itemCount}>{item.assetCount}</Text>
             </Pressable>
         </Link>
     )
@@ -19,11 +19,13 @@ const styles = StyleSheet.create({
     card: {
         borderRadius: 10,
         padding: 6,
+        
     },
     albumName: {
         color: 'white',
         fontSize: 15,
-        fontWeight: '600'
+        fontWeight: '600',
+        width: 70
     },
     images: {
         width: 50,

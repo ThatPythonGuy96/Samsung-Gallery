@@ -1,9 +1,11 @@
 import { FlatList, Image, StyleSheet, Text, View } from 'react-native'
 import { Lucide } from '@react-native-vector-icons/lucide';
 import AlbumCard from '../../components/AlbumCard';
-import { albums } from '../../data';
+import { useMedia } from '../../context/MediaContext';
 
 const Albums = () => {
+    const { albums } = useMedia();
+
     return (
         <View style={styles.container}>
             <View style={styles.header}>

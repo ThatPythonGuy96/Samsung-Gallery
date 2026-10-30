@@ -1,7 +1,7 @@
 import { View, Pressable, StyleSheet } from 'react-native';
 import { Lucide } from '@react-native-vector-icons/lucide';
 
-export default function PhotoActionBar({ liked, onLike, onEdit, onShare, onDelete }) {
+export default function PhotoActionBar({ liked, onLike, onEdit, info, onShare, onDelete }) {
     const actions = [
         {
             key: 'like',
@@ -16,10 +16,10 @@ export default function PhotoActionBar({ liked, onLike, onEdit, onShare, onDelet
                 />
             ),
         },
-        { key: 'edit', label: 'Edit', onPress: onEdit, icon: <Lucide name='pen' size={24} color="#fff" /> },
-        { key: 'info', label: 'Info', onpress: null, icon: <Lucide name='info' size={26} color="blue" />},
+        { key: 'edit', label: 'Edit', onPress: onEdit, icon: <Lucide name='pencil' size={24} color="#fff" /> },
+        { key: 'info', label: 'Info', onpress: null, icon: <Lucide name='info' size={26} color="#fff" />},
         { key: 'share', label: 'Share', onPress: onShare, icon: <Lucide name='share-2' size={24} color="#fff" /> },
-        { key: 'delete', label: 'Delete', onPress: onDelete, icon: <Lucide name='trash-2' size={24} color="#f87171" /> },
+        { key: 'delete', label: 'Delete', onPress: onDelete, icon: <Lucide name='trash-2' size={24} color="#fff" /> },
     ];
 
     return (
