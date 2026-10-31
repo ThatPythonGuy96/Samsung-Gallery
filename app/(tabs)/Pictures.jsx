@@ -1,10 +1,15 @@
-import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native'
+import { FlatList, Image, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native'
 import { Link } from 'expo-router';
 import { useAssets } from '../../context/MediaContext';
+import MediaThumb from '../../components/MediaThumb';
+
+const COLUMNS = 4;
+const GAP = 2;
 
 const Pictures = () => {
     const { assets, loadMore } = useAssets();
-
+    const { width } = useWindowDimensions();
+    const size = (width - GAP * (COLUMNS - 1)) / COLUMNS;
     return (
         <View style={styles.container}>
             <View style={{ alignItems: 'center', paddingBottom: 10}}>
@@ -13,21 +18,12 @@ const Pictures = () => {
 
             <FlatList
                 data={assets}
-                numColumns={4}
+                numColumns={COLUMNS}
                 onEndReached={loadMore}
                 onEndReachedThreshold={0.5}
                 contentContainerStyle={{ gap: 2 }}
                 columnWrapperStyle={{ gap: 2 }}
-                renderItem={({ item }) => {
-                    const route = item.mediaType === 'video' ? 'video' : 'photo';
-                    return (
-                        <Link href={`/${route}/${item.id}`} asChild>
-                            <Pressable style={styles.image}>
-                                <Image source={{ uri: item.uri }} style={{ width: '100%', height: '100%'}}/>
-                            </Pressable>
-                        </Link>
-                    );
-                }}
+                renderItem={({ item }) => <MediaThumb item={item} size={size} />}
             />
         </View>
     )
