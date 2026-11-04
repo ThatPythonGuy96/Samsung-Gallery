@@ -5,17 +5,17 @@
     "slug": "gallery",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/gallery_512.png",
     "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundColor": "#000000",
+        "foregroundImage": "./assets/gallery_128.png",
+        "backgroundImage": "./assets/gallery_128.png",
+        "monochromeImage": "./assets/gallery_128.png"
       },
       "permissions": [
         "android.permission.READ_EXTERNAL_STORAGE",
@@ -47,7 +47,20 @@
         }
       ],
       "expo-font",
-      "expo-video"
+      "expo-video",
+      "expo-image",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#1e1e36",
+          "image": "./assets/gallery_512.png",
+          "dark": {
+            "image": "./assets/gallery_512.png",
+            "backgroundColor": "#000000"
+          },
+          "imageWidth": 200
+        }
+      ]
     ],
     "extra": {
       "router": {},

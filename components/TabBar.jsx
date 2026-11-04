@@ -3,7 +3,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Lucide } from '@react-native-vector-icons/lucide';
 
 const ICONS = {
-    Pictures: 'images',
+    index: 'images',
     Albums: 'gallery-vertical-end',
     Settings: 'square-menu',
 };
@@ -72,18 +72,18 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         backgroundColor: '#1c1c1e',
         borderRadius: 32,
-        padding: 8,
-        width: '70%',
+        padding: 4,
+        width: '80%',
         justifyContent: 'space-around',
-        elevation: 15,
+        elevation: 3,
         shadowColor: '#fcfcfc',
     },
     tab: {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 10,
-        paddingHorizontal: 11,
+        paddingVertical: 7,
+        paddingHorizontal: 8,
         borderRadius: 16,
         gap: 6,
     },

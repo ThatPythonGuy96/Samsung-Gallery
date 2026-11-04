@@ -1,4 +1,3 @@
-// components/MediaThumb.jsx
 import { memo } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Link } from 'expo-router';
@@ -16,10 +15,7 @@ const formatDuration = (seconds = 0) => {
 
 const MediaThumb = ({ item, size, albumId }) => {
     const isVideo = item.mediaType === 'video';
-    const route = isVideo ? 'video' : 'photo';
-    const href = albumId
-        ? `/${route}/${item.id}?album=${albumId}`
-        : `/${route}/${item.id}`;
+    const href = albumId ? `/media/${item.id}?album=${albumId}` : `/media/${item.id}`;
 
     return (
         <Link href={href} asChild>
@@ -41,7 +37,13 @@ const MediaThumb = ({ item, size, albumId }) => {
 export default memo(MediaThumb);
 
 const styles = StyleSheet.create({
-    image: { width: '100%', height: '100%' },
+    image: { 
+        width: '100%', 
+        aspectRatio: 1, 
+        borderStyle: 'solid', 
+        borderWidth: .2, 
+        borderColor: '#fff' 
+},
     badge: {
         position: 'absolute',
         right: 4,

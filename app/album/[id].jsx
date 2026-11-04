@@ -1,9 +1,12 @@
-import { FlatList, StyleSheet, Text, View, Pressable, Image, useWindowDimensions } from 'react-native';
-import { useLocalSearchParams, Link } from 'expo-router';
+import { FlatList, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAssets, useMedia } from '../../context/MediaContext';
 import MediaThumb from '../../components/MediaThumb';
+import { usePinchColumns } from '../../hooks/usePinchColumns';
+import { GestureDetector } from 'react-native-gesture-handler';
+import PhotoTopAction from '../../components/PhotoTopAction';
+import Lucide from '@react-native-vector-icons/lucide';
 
-const COLUMNS = 4;
 const GAP = 2;
 
 const Album = () => {
@@ -11,8 +14,14 @@ const Album = () => {
     const { albums } = useMedia();
     const { assets, loadMore } = useAssets(id);
     const { width } = useWindowDimensions();
+    const { columns, gesture } = usePinchColumns('albumColumns', 3, 6);
+    const router = useRouter();
 
-    const size = (width - GAP * (COLUMNS - 1)) / COLUMNS;
+    const goBack = () => {
+        router.back();
+    }
+
+    const size = (width - GAP * (columns - 1)) / columns;
     const album = albums.find((a) => a.id === id);
 
     return (
@@ -21,16 +30,23 @@ const Album = () => {
                 <Text style={styles.header}>{album?.title}</Text>
             </View>
 
-            <FlatList
-                data={assets}
-                numColumns={COLUMNS}
-                keyExtractor={(item) => item.id}
-                onEndReached={loadMore}
-                onEndReachedThreshold={0.5}
-                contentContainerStyle={{ gap: GAP }}
-                columnWrapperStyle={{ gap: GAP }}
-                renderItem={({ item }) => <MediaThumb item={item} size={size} albumId={id} />}
-            />
+            <Pressable onPress={goBack}>
+                <Lucide name="chevron-left" size={27} color='#fff' style={styles.icon} />
+            </Pressable>
+
+            <GestureDetector gesture={gesture}>
+                <FlatList
+                    key={columns}
+                    data={assets}
+                    numColumns={columns}
+                    keyExtractor={(item) => item.id}
+                    onEndReached={loadMore}
+                    onEndReachedThreshold={0.5}
+                    contentContainerStyle={{ gap: GAP }}
+                    columnWrapperStyle={{ gap: GAP }}
+                    renderItem={({ item }) => <MediaThumb item={item} size={size} albumId={id} />}
+                />
+            </GestureDetector>
         </View>
     );
 };
