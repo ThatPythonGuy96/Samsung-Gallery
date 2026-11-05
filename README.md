@@ -1,55 +1,59 @@
 # Gallery
 
-Gallery is a photo gallery app built with React Native and Expo. It provides a mobile-first interface for browsing a photo grid, viewing images, and navigating between photo collections.
-
-> **Project status:** This is a UI prototype. Photos and albums are bundled sample data; the app does not currently load or manage the device's photo library.
+Gallery is a mobile photo and video browser built with React Native and Expo. It reads media from the device library and provides browsable photo grids, albums, and a full-screen viewer.
 
 ## Features
 
-- Browse a four-column grid of 50 bundled sample photos.
-- Open a photo in a full-screen viewer and move between images using the thumbnail strip.
-- Browse sample albums and view the photos assigned to each album.
-- Use a custom floating tab bar to switch between Pictures, Albums, and Settings.
-- Try the photo viewer's pinch gesture and action bar. Favorite state is temporary and resets when the viewer is left.
-- Run the Expo app on Android, iOS, or the web.
+- Browse device photos and videos in a paginated grid, sorted newest first.
+- Browse device albums and open an album to view its media.
+- View photos and play videos full-screen; swipe between items or select one from the thumbnail strip.
+- Adjust grid density with a pinch gesture on the Pictures, Albums, and album screens.
+- Use a floating tab bar to switch between Pictures, Albums, and Settings.
+- View and request photo-library permission in the app. A small on-device cache restores the initial library page and album list while fresh results load.
+- Remember grid layout and the last selected tab between launches.
 
 ## Tech stack
 
 - Expo SDK 57 and React Native 0.86
 - Expo Router for file-based navigation
+- Expo Media Library for device photos, videos, albums, and permission handling
+- Expo Video for video playback
 - React Native Gesture Handler and Reanimated for gestures and animation
-- Expo Media Library is included as a dependency and configured for permissions, but device-library integration is not implemented yet.
+- Expo File System for local media-cache and settings files
 
 ## Getting started
 
-Install dependencies, then start the Expo development server:
+Install dependencies and start the Expo development server:
 
 ```bash
 npm install
 npx expo start
 ```
 
-Use the Expo CLI prompts to open the app in a development build or emulator. You can also start a platform-specific target with `npm run android`, `npm run ios`, or `npm run web`.
+Use the Expo CLI prompts to open the app on a device or emulator. The project also provides `npm run android`, `npm run ios`, and `npm run web` scripts. Device-library browsing and playback are intended for native iOS and Android; web may not provide the same media-library functionality. An iOS simulator requires macOS.
+
+Grant photo-library access when prompted. If access is denied, use the Settings tab to request permission again or open the device settings.
 
 ## App structure
 
 ```text
-app/                 Expo Router screens and layouts
-	(tabs)/             Pictures, Albums, and Settings tabs
-	album/[name].jsx    Album photo grid
-	photo/[id].jsx      Photo viewer
-	video/[id].jsx      Video screen placeholder
-components/           Reusable album, photo-action, and tab-bar UI
-assets/photos/        Bundled sample images
-data.js               Local photo and album data
+app/                  Expo Router screens and layouts
+  (tabs)/              Pictures, Albums, and Settings tabs
+  album/[id].jsx       Album media grid
+  media/[id].jsx       Photo and video viewer
+components/            Reusable album, media, action-bar, and tab-bar UI
+context/               Media-library and settings state
+hooks/                 Pinch-to-adjust grid columns
+utils/                 Date grouping and video playback helper
 ```
 
-## Current limitations
+## Notes and limitations
 
-- The gallery uses local image assets in `assets/photos/` and static entries in `data.js`; it does not request permission or query device media yet.
-- The photo action bar is mostly UI scaffolding: edit, share, and info are not implemented, and delete currently confirms then returns without deleting an asset.
-- Albums are sample data rather than device albums. The Albums screen's plus icon and Settings links are placeholders.
-- The video route is currently a placeholder.
+- Photo and video access depends on granting the app permission to the device library.
+- Favorites are held in memory only and reset when the viewer is closed.
+- Edit and share actions are not implemented. Delete currently displays a confirmation and exits the viewer without deleting the device asset; the info action only displays a basic alert.
+- Album search and overflow controls are visual placeholders.
+- The Settings screen currently focuses on media-library permission status; it does not expose the saved grid-layout preferences.
 
 ## License
 
