@@ -40,16 +40,14 @@ jobs:
             --platform android \
             --profile preview \
             --non-interactive \
-            --wait
+            --wait \
+            --json > build.json
+          echo "url=$(jq -r '.[0].artifacts.buildUrl' build.json)" >> "$GITHUB_OUTPUT"
 
       - name: Download APK
         run: |
           mkdir -p release
-          eas build:download \
-            --platform android \
-            --latest \
-            --path ./release/Gallery.apk \
-            --non-interactive
+          curl --fail --location --output release/Gallery.apk "${{ steps.build-android.outputs.url }}"
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2

@@ -12,7 +12,7 @@ const PhotoTopAction = () => {
     return (
         <View style={styles.actionContainer}>
             <Pressable onPress={goBack}>
-                <Lucide name="chevron-left" size={27} color='#fff' style={styles.icon} />
+                <Lucide name="chevron-left" size={27} color='#f3efef' style={styles.icon} />
             </Pressable>
         </View>
     )
@@ -30,8 +30,7 @@ const styles = StyleSheet.create({
     icon: {
         padding: 10,
         borderRadius: 30,
-        backgroundColor: '#bfbcbc',
         width: 45,
-        alignItems: 'center'
+        alignItems: 'center',
     }
 })

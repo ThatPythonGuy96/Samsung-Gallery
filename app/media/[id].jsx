@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-    Alert, FlatList, Image, Pressable,
+    Alert, FlatList, Pressable,
     StyleSheet, Text, View, useWindowDimensions,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -16,6 +16,7 @@ import { useAssets } from '../../context/MediaContext';
 import { useEvent } from 'expo';
 import { VideoPlayer } from '../../utils/VideoPlayer';
 import MediaStrip from '../../components/MediaStrip';
+import ImageView from '../../utils/ImageView';
 
 const MediaScreen = () => {
     const { id, album } = useLocalSearchParams();
@@ -102,14 +103,6 @@ const MediaScreen = () => {
     const { isPlaying } = useEvent(player, 'playingChange', { isPlaying: player.playing });
     const { currentTime } = useEvent(player, 'timeUpdate', { currentTime: player.currentTime });
 
-    if (!item) {
-        return (
-            <View style={styles.container}>
-                <Text style={{ color: 'white', margin: 20 }}>Loading...</Text>
-            </View>
-        );
-    }
-
     const togglePlay = () => {
         if (isPlaying) player.pause();
         else if (item.duration && currentTime >= item.duration - 0.3) player.replay(); // finished: start over
@@ -155,11 +148,7 @@ const MediaScreen = () => {
                             a.mediaType === 'video' ? (
                                 <VideoPlayer item={a} active={a.id === id} width={width} player={player} />
                             ) : (
-                                <Image
-                                    source={{ uri: a.uri }}
-                                    style={{ width, height: '100%' }}
-                                    resizeMode="contain"
-                                />
+                                <ImageView uri={a.uri} width={width} />
                             )
                         }
                     />
@@ -186,9 +175,9 @@ const MediaScreen = () => {
                     </Pressable>
                 )}
 
-                <MediaStrip stripRef={stripRef} assets={assets} id={id} index={index} loadMore={loadMore} item={item} />
+                <MediaStrip assets={assets} id={id} index={index} loadMore={loadMore} item={item} />
 
-                <View style={{ paddingTop: 12, paddingBottom: insets.bottom + 12 }}>
+                <View style={{ paddingTop: 12 }}>
                     <PhotoActionBar
                         liked={!!favorites[item.id]}
                         onLike={toggleLike}

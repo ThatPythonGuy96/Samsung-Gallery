@@ -32,6 +32,7 @@ const Albums = () => {
                     key={columns}
                     data={albums}
                     numColumns={columns}
+                    showsVerticalScrollIndicator={false}
                     contentContainerStyle={{ gap: GAP, paddingBottom: 30 }}
                     columnWrapperStyle={{ gap: GAP }}
                     renderItem={({ item }) => (

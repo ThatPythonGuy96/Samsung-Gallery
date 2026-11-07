@@ -40,6 +40,7 @@ const Album = () => {
                     data={assets}
                     numColumns={columns}
                     keyExtractor={(item) => item.id}
+                    showsVerticalScrollIndicator={false}
                     onEndReached={loadMore}
                     onEndReachedThreshold={0.5}
                     contentContainerStyle={{ gap: GAP }}

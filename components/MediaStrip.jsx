@@ -6,7 +6,6 @@ const THUMB = 60;
 const GAP = 8;
 
 const MediaStrip = ({ stripRef, assets, id, index, loadMore, item }) => {
-
     const router = useRouter();
 
     return (
@@ -28,9 +27,9 @@ const MediaStrip = ({ stripRef, assets, id, index, loadMore, item }) => {
                     return (
                         <Pressable
                             onPress={() => router.setParams({ id: a.id })}
-                            style={[styles.thumbWrap, selected && styles.thumbSelected]}
+                            style={[a.mediaType === 'video' ? styles.videoThumbWrap : styles.thumbWrap, selected && styles.thumbSelected]}
                         >
-                            <Image source={{ uri: a.uri }} style={styles.thumb} />
+                            <Image source={{ uri: a.uri }} style={[a.mediaType === 'video' ? styles.videoThumb : styles.imageThumb]} />
                             {a.mediaType === 'video' && (
                                 <View style={styles.playBadge}>
                                     <Lucide name="play" size={10} color="#fff" />
@@ -58,13 +57,27 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         backgroundColor: 'rgba(0,0,0,0.6)',
     },
-    thumb: {
-        width: '100%',
-        height: '100%'
+    imageThumb: {
+        width: 40,
+        height: THUMB
     },
     thumbWrap: {
-        width: THUMB,
+        width: 40,
         height: THUMB,
+        marginRight: GAP,
+        borderRadius: 8,
+        overflow: 'hidden',
+        opacity: 1,
+        borderWidth: 2,
+        borderColor: 'transparent',
+    },
+    videoThumb: {
+        width: 74,
+        height: 58,
+    },
+    videoThumbWrap: {
+        width: 74,
+        height: 58,
         marginRight: GAP,
         borderRadius: 8,
         overflow: 'hidden',
@@ -74,6 +87,7 @@ const styles = StyleSheet.create({
     },
     thumbSelected: {
         opacity: 1,
-        borderColor: '#fff'
+        borderColor: '#fff',
+        borderWidth: .6,
     },
 })

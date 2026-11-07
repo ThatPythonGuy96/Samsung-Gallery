@@ -6,12 +6,13 @@ import { usePinchColumns } from '../../hooks/usePinchColumns';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { groupByDate } from '../../utils/groupByDate';
 import { useMemo } from 'react';
+import { FlashList } from "@shopify/flash-list";
 
 const GAP = 3;
 
 const Pictures = () => {
     const { columns, gesture } = usePinchColumns('picturesColumns');
-    const { assets, loadMore } = useAssets();
+    const { assets, loadMore, ready } = useAssets();
     const { width } = useWindowDimensions();
     const insets = useSafeAreaInsets();
 
@@ -30,11 +31,12 @@ const Pictures = () => {
                     data={assets}
                     keyExtractor={(item) => item.id}
                     numColumns={columns}
+                    showsVerticalScrollIndicator={false}
                     onEndReached={loadMore}
                     onEndReachedThreshold={0.5}
                     contentContainerStyle={{ gap: GAP }}
                     columnWrapperStyle={{ gap: GAP }}
-                    renderItem={({ item }) => <MediaThumb item={item} size={size} />}
+                    renderItem={({ item }) => <MediaThumb item={item} size={size} ready={ready} />}
                 />
             </GestureDetector>
         </View>

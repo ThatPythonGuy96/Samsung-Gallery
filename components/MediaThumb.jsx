@@ -1,6 +1,8 @@
 import { memo } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Link } from 'expo-router';
+import { Image } from 'expo-image';
+import { Blurhash } from 'react-native-blurhash';
 import { Lucide } from '@react-native-vector-icons/lucide';
 
 const pad = (n) => String(n).padStart(2, '0');
@@ -13,14 +15,28 @@ const formatDuration = (seconds = 0) => {
     return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
 };
 
-const MediaThumb = ({ item, size, albumId }) => {
+const MediaThumb = ({ item, size, albumId, ready }) => {
     const isVideo = item.mediaType === 'video';
     const href = albumId ? `/media/${item.id}?album=${albumId}` : `/media/${item.id}`;
 
     return (
         <Link href={href} asChild>
             <Pressable style={{ width: size, height: size }}>
-                <Image source={{ uri: item.uri }} style={styles.image} />
+                {!ready && item.blurHash ? (
+                    <Blurhash
+                        blurhash={item.blurHash}
+                        style={{ width: '100%', height: '100%' }}
+                    />
+                ) : null}
+                <Image 
+                    source={{ uri: item.uri }}
+                    style={styles.image} 
+                    decodeFormat="rgb"
+                    cachePolicy="memory-disk"
+                    contentFit="contain"
+                    autoplay={true}
+                    placeholder={require('../assets/placeholder.png')}
+                />
 
                 {isVideo && (
                     <View style={styles.badge}>

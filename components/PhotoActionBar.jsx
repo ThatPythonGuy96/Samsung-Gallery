@@ -45,17 +45,13 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-around',
         alignItems: 'center',
-        marginHorizontal: 32,
         paddingVertical: 8,
-        borderRadius: 32,
+        borderRadius: 28,
+        borderBottomLeftRadius: 0,
+        borderBottomRightRadius: 0,
         backgroundColor: '#1c1c1e',
-        // iOS shadow
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 0.3,
-        shadowRadius: 12,
-        // Android shadow
-        elevation: 10,
+        elevation: 1,
+        bottom: -1,
     },
     button: {
         padding: 12,

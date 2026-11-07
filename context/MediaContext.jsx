@@ -3,8 +3,11 @@ import * as MediaLibrary from 'expo-media-library/legacy';
 import { File, Paths } from 'expo-file-system';
 
 const MediaContext = createContext(null);
+
+const LOAD_BATCH_SIZE = 50
 const PAGE_SIZE = 60;
-const FIRST_PAGE = 30; // what the splash waits for
+const FIRST_PAGE = 35; // what the splash waits for
+
 const CACHE_VERSION = 1; // bump if the shape of cached data ever changes
 const cacheFile = new File(Paths.cache, 'media-cache.json');
 
@@ -147,7 +150,7 @@ export const useMedia = () => useContext(MediaContext);
 
 // assets for the whole library (no argument) or for one album
 export function useAssets(albumId) {
-    const { permission, lists, loadMore } = useMedia();
+    const { permission, lists, loadMore, ready } = useMedia();
     const key = albumId ?? 'all';
 
     // opening an album for the first time loads its first page
@@ -158,5 +161,6 @@ export function useAssets(albumId) {
     return {
         assets: lists[key] ?? [],
         loadMore: () => loadMore(albumId),
+        ready: ready && !!lists[key],
     };
 }
