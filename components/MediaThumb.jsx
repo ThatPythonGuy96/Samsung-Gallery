@@ -1,41 +1,36 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Link } from 'expo-router';
 import { Image } from 'expo-image';
-import { Blurhash } from 'react-native-blurhash';
 import { Lucide } from '@react-native-vector-icons/lucide';
+import { thumbUri } from '../utils/thumbnails';
+import { formatDuration } from '../utils/format';
 
-const pad = (n) => String(n).padStart(2, '0');
-
-const formatDuration = (seconds = 0) => {
-    const total = Math.round(seconds);
-    const h = Math.floor(total / 3600);
-    const m = Math.floor((total % 3600) / 60);
-    const s = total % 60;
-    return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
-};
-
-const MediaThumb = ({ item, size, albumId, ready }) => {
+// size = the visible tile, gap = space around it (half on each side)
+const MediaThumb = ({ item, size, gap = 0, albumId }) => {
     const isVideo = item.mediaType === 'video';
     const href = albumId ? `/media/${item.id}?album=${albumId}` : `/media/${item.id}`;
 
+    // the small cached copy when it exists, otherwise the original
+    const uri = useMemo(() => thumbUri(item) ?? item.uri, [item]);
+
+    const tileStyle = useMemo(
+        () => StyleSheet.flatten([styles.tile, { width: size, height: size, margin: gap / 2 }]),
+        [size, gap]
+    );
+
     return (
         <Link href={href} asChild>
-            <Pressable style={{ width: size, height: size }}>
-                {!ready && item.blurHash ? (
-                    <Blurhash
-                        blurhash={item.blurHash}
-                        style={{ width: '100%', height: '100%' }}
-                    />
-                ) : null}
-                <Image 
-                    source={{ uri: item.uri }}
-                    style={styles.image} 
+            <Pressable style={tileStyle}>
+                <Image
+                    source={uri}
+                    style={styles.image}
+                    contentFit="cover"
                     decodeFormat="rgb"
                     cachePolicy="memory-disk"
-                    contentFit="contain"
-                    autoplay={true}
-                    placeholder={require('../assets/placeholder.png')}
+                    recyclingKey={item.id}
+                    transition={0}
+                    autoplay={false}
                 />
 
                 {isVideo && (
@@ -53,13 +48,14 @@ const MediaThumb = ({ item, size, albumId, ready }) => {
 export default memo(MediaThumb);
 
 const styles = StyleSheet.create({
-    image: { 
-        width: '100%', 
-        aspectRatio: 1, 
-        borderStyle: 'solid', 
-        borderWidth: .2, 
-        borderColor: '#fff' 
-},
+    tile: { backgroundColor: '#1c1c1e' }, // plain placeholder while the image decodes
+    image: {
+        width: '100%',
+        height: '100%',
+        borderStyle: 'solid',
+        borderWidth: .2,
+        borderColor: '#fff',
+    },
     badge: {
         position: 'absolute',
         right: 4,

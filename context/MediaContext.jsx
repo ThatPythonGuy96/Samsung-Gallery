@@ -1,12 +1,15 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import * as MediaLibrary from 'expo-media-library/legacy';
 import { File, Paths } from 'expo-file-system';
+import { enqueueThumbnails, initThumbnails } from '../utils/thumbnails';
+import { initActions, purgeExpired, useTrashedIds } from '../utils/actions';
 
 const MediaContext = createContext(null);
 
-const LOAD_BATCH_SIZE = 50
 const PAGE_SIZE = 60;
 const FIRST_PAGE = 35; // what the splash waits for
+const ALBUM_BATCH = 8; // album folders checked in parallel
+const EMPTY = []; // stable reference, so memoized lists don't re-render for nothing
 
 const CACHE_VERSION = 1; // bump if the shape of cached data ever changes
 const cacheFile = new File(Paths.cache, 'media-cache.json');
@@ -70,30 +73,34 @@ export function MediaProvider({ children }) {
         try {
             const all = await MediaLibrary.getAlbumsAsync({ includeSmartAlbums: true });
 
-            const checked = await Promise.all(
-                all.map(async (album) => {
-                    const page = await MediaLibrary.getAssetsAsync({
-                        album: album.id,
-                        first: 1,
-                        mediaType: ['photo', 'video'],
-                        sortBy: [[MediaLibrary.SortBy.creationTime, false]],
-                    });
-                    if (page.totalCount === 0) return null; // music-only folder etc.
-                    return {
-                        ...album,
-                        assetCount: page.totalCount, // photos and videos only
-                        cover: page.assets[0]?.uri,
-                    };
-                })
-            );
+            const check = async (album) => {
+                const page = await MediaLibrary.getAssetsAsync({
+                    album: album.id,
+                    first: 1,
+                    mediaType: ['photo', 'video'],
+                    sortBy: [[MediaLibrary.SortBy.creationTime, false]],
+                });
+                if (page.totalCount === 0) return null; // music-only folder etc.
+                return {
+                    ...album,
+                    assetCount: page.totalCount, // photos and videos only
+                    cover: page.assets[0]?.uri,
+                };
+            };
 
-            const result = checked.filter(Boolean);
+            // a few folders at a time: one query per folder all at once is heavy on Android
+            const result = [];
+            for (let i = 0; i < all.length; i += ALBUM_BATCH) {
+                const chunk = await Promise.all(all.slice(i, i + ALBUM_BATCH).map(check));
+                result.push(...chunk.filter(Boolean));
+            }
+
             setAlbums(result);
             saveCache({ albums: result });
         } catch (e) {
             console.warn('Failed to load albums', e);
         }
-    }, []);
+    }, [saveCache]);
 
     const refresh = useCallback(async () => {
         const m = (meta.current.all ??= { after: undefined, hasMore: true, loading: false });
@@ -124,6 +131,9 @@ export function MediaProvider({ children }) {
 
         let cancelled = false;
         (async () => {
+            initActions(); // favorites and the recycle bin, before anything is shown
+            initThumbnails(); // which thumbnails already exist, before any tile renders
+
             const cached = await readCache();
             if (cached && !cancelled) {
                 setLists((prev) => ({ ...prev, all: cached.assets }));
@@ -133,14 +143,28 @@ export function MediaProvider({ children }) {
             await refresh(); // fresh data replaces the cached data
             if (!cancelled) setReady(true); // first launch ever: no cache, so wait for this
             loadAlbums(); // not awaited
+            purgeExpired(); // items older than 30 days in the bin; Android asks to confirm
         })();
 
         return () => { cancelled = true; };
     }, [permission?.granted, refresh, loadAlbums]);
 
+    // after copy / move the library has changed: start again from fresh data
+    const reload = useCallback(async () => {
+        meta.current = {};
+        setLists((prev) => (prev.all ? { all: prev.all } : {})); // album lists reload when opened
+        await refresh();
+        loadAlbums();
+    }, [refresh, loadAlbums]);
+
+    // background thumbnails for everything that has been loaded, newest first
+    useEffect(() => {
+        for (const list of Object.values(lists)) enqueueThumbnails(list);
+    }, [lists]);
+
     const value = useMemo(
-        () => ({ permission, requestPermission, ready, albums, lists, loadMore }),
-        [permission, requestPermission, ready, albums, lists, loadMore]
+        () => ({ permission, requestPermission, ready, albums, lists, loadMore, reload }),
+        [permission, requestPermission, ready, albums, lists, loadMore, reload]
     );
 
     return <MediaContext.Provider value={value}>{children}</MediaContext.Provider>;
@@ -151,16 +175,27 @@ export const useMedia = () => useContext(MediaContext);
 // assets for the whole library (no argument) or for one album
 export function useAssets(albumId) {
     const { permission, lists, loadMore, ready } = useMedia();
+    const trashedIds = useTrashedIds();
     const key = albumId ?? 'all';
+    const raw = lists[key];
 
-    // opening an album for the first time loads its first page
+    // opening an album for the first time (or after a reload) loads its first page
     useEffect(() => {
-        if (permission?.granted && !lists[key]) loadMore(albumId);
-    }, [permission?.granted, key]);
+        if (permission?.granted && !raw) loadMore(albumId);
+    }, [permission?.granted, key, !!raw]);
+
+    // media in the recycle bin never show up in the app
+    const assets = useMemo(() => {
+        if (!raw) return EMPTY;
+        return trashedIds.size ? raw.filter((a) => !trashedIds.has(a.id)) : raw;
+    }, [raw, trashedIds]);
+
+    // stable identity: lists and onEndReached don't see a "new" function every render
+    const load = useCallback(() => loadMore(albumId), [loadMore, albumId]);
 
     return {
-        assets: lists[key] ?? [],
-        loadMore: () => loadMore(albumId),
-        ready: ready && !!lists[key],
+        assets,
+        loadMore: load,
+        ready: ready && !!raw,
     };
 }

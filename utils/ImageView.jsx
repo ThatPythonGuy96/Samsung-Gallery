@@ -1,21 +1,27 @@
-import { StyleSheet } from 'react-native'
-import { Image } from 'expo-image'
-import { memo } from 'react'
+import { memo } from 'react';
+import { Image } from 'expo-image';
+import { thumbUri } from '../utils/thumbnails';
 
-const ImageView = ({ uri, width }) => {
+// Full-screen page. The grid thumbnail shows instantly as a placeholder,
+// then the full-resolution photo fades in over it (Google Photos does the same).
+// fullRes: decode at the photo's real size instead of screen size, so zoom stays sharp.
+const ImageView = ({ item, width, height = '100%', fullRes = false, onLoad }) => {
+    const thumb = thumbUri(item);
+
     return (
         <Image
-            source={{ uri: uri }}
-            decodeFormat="rgb"
-            style={{ width, height: '100%' }}
+            source={item.uri}
+            placeholder={thumb ? { uri: thumb } : undefined}
+            placeholderContentFit="contain"
+            style={{ width, height }}
             contentFit="contain"
-            autoplay={true}
-            transition={200}
-            cachePolicy={'memory-disk'}
+            transition={150}
+            cachePolicy="memory"
+            recyclingKey={item.id}
+            allowDownscaling={!fullRes}
+            onLoad={onLoad}
         />
-    )
-}
+    );
+};
 
-export default memo(ImageView)
-
-const styles = StyleSheet.create({})
+export default memo(ImageView);

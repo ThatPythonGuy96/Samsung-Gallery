@@ -1,23 +1,28 @@
-import { FlatList, StyleSheet, Text, useWindowDimensions, View } from 'react-native'
-import { useAssets } from '../../context/MediaContext';
-import MediaThumb from '../../components/MediaThumb';
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { usePinchColumns } from '../../hooks/usePinchColumns';
+import { useCallback } from 'react';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { GestureDetector } from 'react-native-gesture-handler';
-import { groupByDate } from '../../utils/groupByDate';
-import { useMemo } from 'react';
-import { FlashList } from "@shopify/flash-list";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAssets } from '../../context/MediaContext';
+import { usePinchColumns } from '../../hooks/usePinchColumns';
+import MediaThumb from '../../components/MediaThumb';
 
 const GAP = 3;
+const keyExtractor = (item) => item.id;
 
 const Pictures = () => {
     const { columns, gesture } = usePinchColumns('picturesColumns');
-    const { assets, loadMore, ready } = useAssets();
+    const { assets, loadMore } = useAssets();
     const { width } = useWindowDimensions();
     const insets = useSafeAreaInsets();
 
-    const size = (width - GAP * (columns - 1)) / columns;
-    // const rows = useMemo(() => groupByDate(assets, columns), [assets, columns]);
+    // FlashList gives every cell width / columns; the gap lives inside each tile
+    const size = width / columns - GAP;
+
+    const renderItem = useCallback(
+        ({ item }) => <MediaThumb item={item} size={size} gap={GAP} />,
+        [size]
+    );
 
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -26,24 +31,24 @@ const Pictures = () => {
             </View>
 
             <GestureDetector gesture={gesture}>
-                <FlatList
-                    key={columns}
-                    data={assets}
-                    keyExtractor={(item) => item.id}
-                    numColumns={columns}
-                    showsVerticalScrollIndicator={false}
-                    onEndReached={loadMore}
-                    onEndReachedThreshold={0.5}
-                    contentContainerStyle={{ gap: GAP }}
-                    columnWrapperStyle={{ gap: GAP }}
-                    renderItem={({ item }) => <MediaThumb item={item} size={size} ready={ready} />}
-                />
+                <View style={{ flex: 1 }}>
+                    <FlashList
+                        key={columns}
+                        data={assets}
+                        numColumns={columns}
+                        keyExtractor={keyExtractor}
+                        renderItem={renderItem}
+                        onEndReached={loadMore}
+                        onEndReachedThreshold={1.5}
+                        showsVerticalScrollIndicator={false}
+                    />
+                </View>
             </GestureDetector>
         </View>
-    )
-}
+    );
+};
 
-export default Pictures
+export default Pictures;
 
 const styles = StyleSheet.create({
     container: {
@@ -51,17 +56,8 @@ const styles = StyleSheet.create({
         backgroundColor: 'black',
         paddingBottom: 40,
     },
-    image: {
-        flexBasis: '25%',
-        aspectRatio: 1,
-    },
-    textLight: {
-        color: 'white',
-    },
     header: {
         fontSize: 30,
-        color: 'white'
+        color: 'white',
     },
-    button: { marginTop: 16, paddingVertical: 12, paddingHorizontal: 20, borderRadius: 24, backgroundColor: '#4f46e5' },
-
-})
+});
